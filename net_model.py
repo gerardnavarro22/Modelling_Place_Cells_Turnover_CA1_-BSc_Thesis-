@@ -1,19 +1,21 @@
+# %%
 import numpy as np
 
 global J,N_K,N_I,N_L,N_J,N,ext,theta,con_idx,probs,m_0
-N_K=1        #total excitatory populations
-N_I=1000      #total excitatory neurons
-N_L=1        #total inhibitory populations
-N_J=1000      #total inhibitory neurons
-N=N_I+N_J    #total neurons
-con_idx=10   #connectivity index K
-m_0=0.3      #mean activity of external neurons
+N_K=1           #total excitatory populations 
+N_I=1000        #total excitatory neurons
+N_L=1           #total inhibitory populations
+N_J=1000        #total inhibitory neurons
+N=N_I+N_J       #total neurons
+con_idx=10      #connectivity index K
+m_0=0.3         #mean activity of external neurons
 
-J = np.zeros((N_K+1, N_L+1))   #values of connections
+J = np.zeros((N_K+1, N_L+1))    #values of connections J(postsynaptic,presynaptic)
+#when presynaptic cell is inhibitory negative connection, otherwise positive
 J[0,0] = 1/np.sqrt(con_idx)
-J[0,1] = 1.1/np.sqrt(con_idx)
+J[0,1] = -1.1/np.sqrt(con_idx)
 J[1,0] = 1/np.sqrt(con_idx)
-J[1,1] = 1.2/np.sqrt(con_idx)
+J[1,1] = -1.2/np.sqrt(con_idx)
 
 ext = np.array([1.15*m_0*np.sqrt(con_idx), 0.92*m_0*np.sqrt(con_idx)])  #external inputs
 theta = np.array([0.87, 0.87])                                          #thresholds for each population
@@ -26,7 +28,7 @@ def heaviside(x):
 
 class cell:
     def __init__(self, active, i, k, pre=[]):
-        self.active = active
+        self.active = bool(active)
         self.pre = list(pre)
         #self.post = post
         self.i = i
@@ -39,15 +41,18 @@ class cell:
         u = u + ext[self.k] - theta[self.k]
         self.active = heaviside(u)
 
+    def __repr__(self):
+        return f'active={self.active}\nindex={self.i}\npopulation={self.k}\n{len(self.pre)} presynaptic cells'
+
 #creating population of cells   
 global population 
 population = []
 
 for i in range(N_I):
-    population.append(cell(np.random.randint(2), i, 0))
+    population.append(cell(np.random.choice(2, p=(0.8, 0.2)), i, 0))
     
 for i in range(N_J):
-    population.append(cell(np.random.randint(2), i, 1))
+    population.append(cell(np.random.choice(2, p=(0.8, 0.2)), i, 1))
 
 #creating connections between cells    
 for i in range(N):

@@ -1,5 +1,7 @@
 # %%
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
 
 global J,N_K,N_I,N_L,N_J,N,ext,theta,con_idx,probs,m_0
 N_K=1           #total excitatory populations 
@@ -49,10 +51,10 @@ global population
 population = []
 
 for i in range(N_I):
-    population.append(cell(np.random.choice(2, p=(0.8, 0.2)), i, 0))
+    population.append(cell(np.random.choice(2, p=(0.5, 0.5)), i, 0))
     
 for i in range(N_J):
-    population.append(cell(np.random.choice(2, p=(0.8, 0.2)), i, 1))
+    population.append(cell(np.random.choice(2, p=(0.5, 0.5)), i, 1))
 
 #creating connections between cells    
 for i in range(N):
@@ -60,22 +62,40 @@ for i in range(N):
         if (np.random.rand()<probs[population[i].k]):
             population[i].pre.append(j)
 
-n_active = 0
-for i in range(N):
-    n_active += population[i].active
+n_active = sum(c.active for c in population)
 
 print(f'initial active cells = {n_active}')
 
-for t in range(50000):
+T = 50000
+spikes = np.zeros(T)
+for t in range(T):
     idx = np.random.randint(N)
     before = population[idx].active
     population[idx].update()
     after = population[idx].active
-    #if (after-before == 1):
-    #    print(f'spike! t={t}')
+    if (after-before == 1):
+        spikes[t]=1
         
-n_active = 0
-for i in range(N):
-    n_active += population[i].active
+n_active = sum(c.active for c in population)
 
 print(f'final active cells = {n_active}')
+
+bin=100
+x = np.arange(0, T, bin)
+inter_spike = [sum(spikes[bin*i:bin*i+bin]) for i in range(int(T/bin))]
+
+def func(x, a, c, d):
+    return a*np.exp(-c*x)+d
+
+popt, pcov = curve_fit(func,  x,  inter_spike, p0 = (1, 1e-6, 1))
+xx = np.linspace(0, 50000, 1000)
+yy = func(xx, *popt)
+
+fig, ax = plt.subplots()
+fig.patch.set_facecolor('white')
+ax.set_xlabel("time")
+ax.set_ylabel("spikes count")
+#ax.set_xticks()
+ax.plot(np.arange(0,T, bin), inter_spike, '.')
+ax.plot(xx, yy)
+plt.show()

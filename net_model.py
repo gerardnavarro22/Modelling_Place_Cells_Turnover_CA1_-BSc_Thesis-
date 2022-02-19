@@ -51,10 +51,10 @@ global population
 population = []
 
 for i in range(N_I):
-    population.append(cell(np.random.choice(2, p=(0.5, 0.5)), i, 0))
+    population.append(cell(np.random.choice(2, p=(0.8, 0.2)), i, 0))
     
 for i in range(N_J):
-    population.append(cell(np.random.choice(2, p=(0.5, 0.5)), i, 1))
+    population.append(cell(np.random.choice(2, p=(0.8, 0.2)), i, 1))
 
 #creating connections between cells    
 for i in range(N):
@@ -96,6 +96,7 @@ fig.patch.set_facecolor('white')
 ax.set_xlabel("time")
 ax.set_ylabel("spikes count")
 #ax.set_xticks()
-ax.plot(np.arange(0,T, bin), inter_spike, '.')
-ax.plot(xx, yy)
+ax.plot(x, inter_spike, '.')
+ax.plot(xx, yy, label='fitted negative exponential')
+ax.legend()
 plt.show()

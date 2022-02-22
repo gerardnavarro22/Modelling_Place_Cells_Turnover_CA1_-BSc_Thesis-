@@ -1,10 +1,11 @@
 # %%
+from .cell import cell
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
-global J,N_K,N_I,N_L,N_J,N,ext,theta,con_idx,probs,m_0
-N_K=1           #total excitatory populations 
+#global J,N_K,N_I,N_L,N_J,N,ext,theta,con_idx,probs,m_0
+N_K=1           #total excitatory populations
 N_I=1000        #total excitatory neurons
 N_L=1           #total inhibitory populations
 N_J=1000        #total inhibitory neurons
@@ -24,39 +25,17 @@ theta = np.array([0.87, 0.87])                                          #thresho
 probs = np.array([con_idx/N_I, con_idx/N_J])                            #probability of a connection happening
 
 
-def heaviside(x):
-    if x<=0: return False
-    else: return True
-
-class cell:
-    def __init__(self, active, i, k, pre=[]):
-        self.active = bool(active)
-        self.pre = list(pre)
-        #self.post = post
-        self.i = i
-        self.k = k
-    
-    def update(self):
-        u = 0
-        for j in range(len(self.pre)):
-            u += J[self.k, population[self.pre[j]].k]*population[self.pre[j]].active
-        u = u + ext[self.k] - theta[self.k]
-        self.active = heaviside(u)
-
-    def __repr__(self):
-        return f'active={self.active}\nindex={self.i}\npopulation={self.k}\n{len(self.pre)} presynaptic cells'
-
-#creating population of cells   
-global population 
+#creating population of cells
+#global population
 population = []
 
 for i in range(N_I):
     population.append(cell(np.random.choice(2, p=(0.8, 0.2)), i, 0))
-    
+
 for i in range(N_J):
     population.append(cell(np.random.choice(2, p=(0.8, 0.2)), i, 1))
 
-#creating connections between cells    
+#creating connections between cells
 for i in range(N):
     for j in range(N):
         if (np.random.rand()<probs[population[i].k]):
@@ -75,7 +54,7 @@ for t in range(T):
     after = population[idx].active
     if (after-before == 1):
         spikes[t]=1
-        
+
 n_active = sum(c.active for c in population)
 
 print(f'final active cells = {n_active}')
@@ -100,3 +79,8 @@ ax.plot(x, inter_spike, '.')
 ax.plot(xx, yy, label='fitted negative exponential')
 ax.legend()
 plt.show()
+
+#actualizar todas a la vez
+#mirar si spike canvio o si activada
+
+# %%

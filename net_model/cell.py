@@ -10,7 +10,7 @@ class cell:
         self.i = i
         self.k = k
 
-    def update(self):
+    def update(self, J, population, theta, ext):
         u = 0
         for j in range(len(self.pre)):
             u += J[self.k, population[self.pre[j]].k]*population[self.pre[j]].active

@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
-def asynchronous_update(T):
+def asynchronous_update(T, plot=True):
     spikes = np.zeros((N,T))
     for t in range(T):
         idx = np.random.randint(N)
@@ -14,16 +14,19 @@ def asynchronous_update(T):
         if (after-before == 1):
             spikes[idx,t]=1
 
-    fig, ax = plt.subplots(figsize=(15,15))
-    fig.patch.set_facecolor('white')
-    ax.set_title('spikes of asynchronous update')
-    ax.set_xlabel("time")
-    ax.set_ylabel("neuron")
-    #ax.set_xticks()
-    ax.imshow(spikes[:,:], origin='lower')
-    plt.show()
+    if plot:
+        fig, ax = plt.subplots(figsize=(15,15))
+        fig.patch.set_facecolor('white')
+        ax.set_title('spikes of asynchronous update')
+        ax.set_xlabel("time")
+        ax.set_ylabel("neuron")
+        #ax.set_xticks()
+        ax.imshow(spikes[:,:], origin='lower')
+        plt.show()
 
-def all_update(T):
+    return spikes
+
+def all_update(T, plot=True):
     spikes = np.zeros((N,T))
     for t in range(T):
         pre_population = population.copy()
@@ -33,20 +36,60 @@ def all_update(T):
             after = population[i].active
             if (after-before == 1):
                 spikes[i,t]=1
-    fig, ax = plt.subplots(figsize=(15,15))
+
+    if plot:
+        fig, ax = plt.subplots(figsize=(15,15))
+        fig.patch.set_facecolor('white')
+        ax.set_title('spikes of synchronous update')
+        ax.set_xlabel("time")
+        ax.set_ylabel("neuron")
+        #ax.set_xticks()
+        ax.imshow(spikes[:,:], origin='lower')
+        plt.show()
+
+    return spikes
+
+def plot_spikes(spikes, T):
+    spikes_e = np.sum(spikes[:N_I,:], axis=0)
+    spikes_i = np.sum(spikes[N_I:,:], axis=0)
+    
+    bin=int(T/500)
+    x = np.arange(0, T, bin)
+    inter_spike_e = [sum(spikes_e[bin*i:bin*i+bin]) for i in range(int(T/bin))]
+    inter_spike_i = [sum(spikes_i[bin*i:bin*i+bin]) for i in range(int(T/bin))]
+
+    def func(x, a, c, d):
+        return a*np.exp(-c*x)+d
+
+    fig, axs = plt.subplots(2, constrained_layout=True, figsize=(8,6))
     fig.patch.set_facecolor('white')
-    ax.set_title('spikes of synchronous update')
-    ax.set_xlabel("time")
-    ax.set_ylabel("neuron")
-    #ax.set_xticks()
-    ax.imshow(spikes[:,:], origin='lower')
+
+    popt, pcov = curve_fit(func,  x,  inter_spike_e, p0 = (1, 1e-6, 1))
+    xx = np.linspace(0, 50000, 1000)
+    yy = func(xx, *popt)
+    axs[0].set_title("Excitatory cells spikes")
+    axs[0].set_xlabel("time")
+    axs[0].set_ylabel("spikes count")
+    axs[0].plot(x, inter_spike_e, '.')
+    axs[0].plot(xx, yy, label='fitted negative exponential')
+    axs[0].legend()
+
+    popt, pcov = curve_fit(func,  x,  inter_spike_i, p0 = (1, 1e-6, 1))
+    xx = np.linspace(0, 50000, 1000)
+    yy = func(xx, *popt)
+    axs[1].set_title("Inhibitory cells spikes")
+    axs[1].set_xlabel("time")
+    axs[1].set_ylabel("spikes count")
+    axs[1].plot(x, inter_spike_i, '.')
+    axs[1].plot(xx, yy, label='fitted negative exponential')
+    axs[1].legend()
     plt.show()
 
 if __name__ == "__main__":
     N_K=1           #total excitatory populations
-    N_I=100        #total excitatory neurons
+    N_I=10000        #total excitatory neurons
     N_L=1           #total inhibitory populations
-    N_J=100        #total inhibitory neurons
+    N_J=10000        #total inhibitory neurons
     N=N_I+N_J       #total neurons
     con_idx=10      #connectivity index K
     m_0=0.3         #mean activity of external neurons
@@ -78,38 +121,27 @@ if __name__ == "__main__":
                 population[i].pre.append(j)
 
     n_active = sum(c.active for c in population)
+    n_active_e = sum(c.active for c in population if c.k == 0)
+    n_active_i = sum(c.active for c in population if c.k == 1)
 
-    print(f'initial active cells = {n_active}')
+    print(f'initial total active cells = {n_active} ({round(n_active/N*100,2)}%)')
+    print(f'initial excitatory active cells = {n_active_e} ({round(n_active_e/N_I*100,2)}%)')
+    print(f'initial inhibitory active cells = {n_active_i} ({round(n_active_i/N_J*100,2)}%)')
 
-    T=500
-    all_update(T)
+    #simulating cells
+    T=50000
+    spikes = asynchronous_update(T, False)
 
     n_active = sum(c.active for c in population)
+    n_active_e = sum(c.active for c in population if c.k == 0)
+    n_active_i = sum(c.active for c in population if c.k == 1)
 
-    print(f'final active cells = {n_active}')
+    print(f'final total active cells = {n_active} ({round(n_active/N*100,2)}%)')
+    print(f'final excitatory active cells = {n_active_e} ({round(n_active_e/N_I*100,2)}%)')
+    print(f'final inhibitory active cells = {n_active_i} ({round(n_active_i/N_J*100,2)}%)')
 
-    """
-    bin=T/50
-    x = np.arange(0, T, bin)
-    inter_spike = [sum(spikes[bin*i:bin*i+bin]) for i in range(int(T/bin))]
-
-    def func(x, a, c, d):
-        return a*np.exp(-c*x)+d
-
-    popt, pcov = curve_fit(func,  x,  inter_spike, p0 = (1, 1e-6, 1))
-    xx = np.linspace(0, 50000, 1000)
-    yy = func(xx, *popt)
-
-    fig, ax = plt.subplots()
-    fig.patch.set_facecolor('white')
-    ax.set_xlabel("time")
-    ax.set_ylabel("spikes count")
-    #ax.set_xticks()
-    ax.plot(x, inter_spike, '.')
-    ax.plot(xx, yy, label='fitted negative exponential')
-    ax.legend()
-    plt.show()
-    """
+    #plotting spikes
+    plot_spikes(spikes, T)
 
     #actualizar todas a la vez
     #mirar si spike canvio o si activada

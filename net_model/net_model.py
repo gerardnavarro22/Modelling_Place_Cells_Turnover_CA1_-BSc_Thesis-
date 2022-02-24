@@ -3,6 +3,7 @@ from cell import cell
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+from joblib import Parallel, delayed
 
 def asynchronous_update(T, plot=True):
     spikes = np.zeros((N,T))
@@ -85,11 +86,14 @@ def plot_spikes(spikes, T):
     axs[1].legend()
     plt.show()
 
+def create_cell(i, k):
+    return cell(np.random.choice(2, p=(0.8, 0.2)), i, k)
+
 if __name__ == "__main__":
     N_K=1           #total excitatory populations
-    N_I=10000        #total excitatory neurons
+    N_I=1000        #total excitatory neurons
     N_L=1           #total inhibitory populations
-    N_J=10000        #total inhibitory neurons
+    N_J=1000        #total inhibitory neurons
     N=N_I+N_J       #total neurons
     con_idx=10      #connectivity index K
     m_0=0.3         #mean activity of external neurons
@@ -106,19 +110,18 @@ if __name__ == "__main__":
     probs = np.array([con_idx/N_I, con_idx/N_J])                            #probability of a connection happening
 
     #creating population of cells
-    population = []
 
-    for i in range(N_I):
-        population.append(cell(np.random.choice(2, p=(0.8, 0.2)), i, 0))
+    population = Parallel(n_jobs=-1)(delayed(create_cell)(i, 0) for i in range(N_I))
 
-    for i in range(N_J):
-        population.append(cell(np.random.choice(2, p=(0.8, 0.2)), i, 1))
+    population += Parallel(n_jobs=-1)(delayed(create_cell)(i, 1) for i in range(N_J))
 
     #creating connections between cells
-    for i in range(N):
-        for j in range(N):
-            if (np.random.rand()<probs[population[i].k]):
-                population[i].pre.append(j)
+    for i in range(N_I):
+        population[i].pre = np.where(np.random.rand(N)<probs[0])[0]
+
+    for i in range(N_J):
+        population[N_I+i].pre = np.where(np.random.rand(N)<probs[1])[0]
+                
 
     n_active = sum(c.active for c in population)
     n_active_e = sum(c.active for c in population if c.k == 0)

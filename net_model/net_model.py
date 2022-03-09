@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from joblib import Parallel, delayed
 
-def asynchronous_update(T, plot=True):
+def asynchronous_update(T, n_active_e, n_active_i, plot=True):
+    active_cells_e=np.zeros(T)
+    active_cells_i=np.zeros(T)
     spikes = np.zeros((N,T))
     for t in range(T):
         idx = np.random.randint(N)
@@ -14,6 +16,17 @@ def asynchronous_update(T, plot=True):
         after = population[idx].active
         if (after-before == 1):
             spikes[idx,t]=1
+            if (population[idx].k==0):
+                n_active_e += 1
+            else:
+                n_active_i += 1
+        elif (after-before == -1):
+            if (population[idx].k==0):
+                n_active_e -= 1
+            else:
+                n_active_i -= 1
+        active_cells_e[t]=n_active_e
+        active_cells_i[t]=n_active_i
 
     if plot:
         fig, ax = plt.subplots(figsize=(15,15))
@@ -25,7 +38,7 @@ def asynchronous_update(T, plot=True):
         ax.imshow(spikes[:,:], origin='lower')
         plt.show()
 
-    return spikes
+    return spikes, active_cells_e, active_cells_i
 
 def all_update(T, plot=True):
     spikes = np.zeros((N,T))
@@ -66,7 +79,7 @@ def plot_spikes(spikes, T):
     fig.patch.set_facecolor('white')
 
     popt, pcov = curve_fit(func,  x,  inter_spike_e, p0 = (1, 1e-6, 1))
-    xx = np.linspace(0, 50000, 1000)
+    xx = np.linspace(0, T, 1000)
     yy = func(xx, *popt)
     axs[0].set_title("Excitatory cells spikes")
     axs[0].set_xlabel("time")
@@ -76,7 +89,7 @@ def plot_spikes(spikes, T):
     axs[0].legend()
 
     popt, pcov = curve_fit(func,  x,  inter_spike_i, p0 = (1, 1e-6, 1))
-    xx = np.linspace(0, 50000, 1000)
+    xx = np.linspace(0, T, 1000)
     yy = func(xx, *popt)
     axs[1].set_title("Inhibitory cells spikes")
     axs[1].set_xlabel("time")
@@ -87,7 +100,7 @@ def plot_spikes(spikes, T):
     plt.show()
 
 def create_cell(i, k):
-    return cell(np.random.choice(2, p=(0.8, 0.2)), i, k)
+    return cell(np.random.choice(2, p=(0.5, 0.5)), i, k)
 
 if __name__ == "__main__":
     N_K=1           #total excitatory populations
@@ -95,18 +108,27 @@ if __name__ == "__main__":
     N_L=1           #total inhibitory populations
     N_J=1000        #total inhibitory neurons
     N=N_I+N_J       #total neurons
-    con_idx=10      #connectivity index K
-    m_0=0.3         #mean activity of external neurons
+    con_idx=100     #connectivity index K
+    m_0=0.1         #mean activity of external neurons
+    E=1.07
+    I=0.95
+    J_EE=1
+    J_IE=1
+    J_E=1.03
+    J_I=0.97
 
     J = np.zeros((N_K+1, N_L+1))    #values of connections J(postsynaptic,presynaptic)
     #when presynaptic cell is inhibitory negative connection, otherwise positive
-    J[0,0] = 1/np.sqrt(con_idx)
-    J[0,1] = -1.1/np.sqrt(con_idx)
-    J[1,0] = 1/np.sqrt(con_idx)
-    J[1,1] = -1.2/np.sqrt(con_idx)
+    J[0,0] = J_EE/np.sqrt(con_idx)
+    J[0,1] = -J_E/np.sqrt(con_idx)
+    J[1,0] = J_IE/np.sqrt(con_idx)
+    J[1,1] = -J_I/np.sqrt(con_idx)
 
-    ext = np.array([1.15*m_0*np.sqrt(con_idx), 0.92*m_0*np.sqrt(con_idx)])  #external inputs
-    theta = np.array([0.87, 0.87])                                          #thresholds for each population
+    if(not (E/I)<(-J[0,1]/-J[1,1])<1 and not (E/I)>(-J[0,1]/-J[1,1])>1):
+        raise ValueError
+
+    ext = np.array([E*m_0*np.sqrt(con_idx), I*m_0*np.sqrt(con_idx)])  #external inputs
+    theta = np.array([0.94, 0.94])                                          #thresholds for each population
     probs = np.array([con_idx/N_I, con_idx/N_J])                            #probability of a connection happening
 
     #creating population of cells
@@ -133,7 +155,7 @@ if __name__ == "__main__":
 
     #simulating cells
     T=50000
-    spikes = asynchronous_update(T, False)
+    spikes, active_cells_e, active_cells_i = asynchronous_update(T, n_active_e, n_active_i, True)
 
     n_active = sum(c.active for c in population)
     n_active_e = sum(c.active for c in population if c.k == 0)
@@ -142,6 +164,10 @@ if __name__ == "__main__":
     print(f'final total active cells = {n_active} ({round(n_active/N*100,2)}%)')
     print(f'final excitatory active cells = {n_active_e} ({round(n_active_e/N_I*100,2)}%)')
     print(f'final inhibitory active cells = {n_active_i} ({round(n_active_i/N_J*100,2)}%)')
+    exp_e = (J_I*E-J_E*I)/(J_E-J_I)*m_0
+    exp_i = (E-I)/(J_E-J_I)*m_0
+    print(f'Expected excitatory active cells = {exp_e*100}%')
+    print(f'Expected inhibitory active cells = {exp_i*100}%')
 
     #plotting spikes
     plot_spikes(spikes, T)

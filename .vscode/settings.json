@@ -3,6 +3,9 @@
         "*.tcc": "cpp",
         "cmath": "cpp",
         "iostream": "cpp",
-        "cstring": "cpp"
+        "cstring": "cpp",
+        "iosfwd": "cpp",
+        "random": "cpp",
+        "initializer_list": "cpp"
     }
 }

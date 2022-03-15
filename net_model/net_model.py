@@ -108,7 +108,7 @@ if __name__ == "__main__":
     N_L=1           #total inhibitory populations
     N_J=1000        #total inhibitory neurons
     N=N_I+N_J       #total neurons
-    con_idx=100     #connectivity index K
+    con_idx=500     #connectivity index K
     m_0=0.1         #mean activity of external neurons
     E=1.07
     I=0.95

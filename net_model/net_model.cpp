@@ -35,9 +35,6 @@ double dist() {
 
 class Cell {
 
-   /*private:
-    double something;*/
-
     public:
     bool active;
     vector<int> pre;

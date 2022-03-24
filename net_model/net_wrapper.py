@@ -44,8 +44,11 @@ with open('./spikes_i(t).txt', 'r') as f:
 fig, axs = plt.subplots(2, constrained_layout=True, figsize=(8,6))
 fig.patch.set_facecolor('white')
 
+axs[0].set_title('Excitatory cells')
 axs[0].plot(me)
 axs[0].axhline(y=exp_e.value*N_E, color='r', linestyle='-')
+fig.suptitle('#active cells', fontsize=16)
+axs[1].set_title('Inhibitory cells')
 axs[1].plot(mi)
 axs[1].axhline(y=exp_i.value*N_I, color='r', linestyle='-')
 
@@ -54,13 +57,19 @@ plt.show()
 fig, axs = plt.subplots(2, constrained_layout=True, figsize=(16,9))
 fig.patch.set_facecolor('white')
 
+
+fig.suptitle('Neuron spikes', fontsize=16)
 max_cell = 50
 beg = 0
+
+axs[0].set_title('Excitatory cells')
 for i in range(100):
     spikes_t = np.array(spikes_e[beg+i])
     spikes_t = spikes_t[spikes_t<max_cell]
     axs[0].scatter(np.repeat(beg+i,spikes_t.shape[0]), spikes_t, s=3, marker='s', color='black')
 
+fig.suptitle('#active cells', fontsize=16)
+axs[1].set_title('Inhibitory cells')
 for i in range(100):
     spikes_t = np.array(spikes_i[beg+i])
     spikes_t = spikes_t[spikes_t<max_cell]

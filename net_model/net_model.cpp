@@ -28,10 +28,18 @@ bool heaviside(double x) {
 }
 
 double dist() {
-        default_random_engine generator(time(0));
-        bernoulli_distribution distribution(probs[0]);
-        return distribution(generator);
-    }
+    default_random_engine generator(time(0));
+    bernoulli_distribution distribution(probs[0]);
+    return distribution(generator);
+}
+
+double h(double x) {
+    return -sqrt(2*fabs(log(x)));
+}
+
+double H(double x) {
+    return exp(-(x*x)/2.)/(sqrt(2*M_PI)*fabs(x));
+}
 
 class Cell {
 
@@ -212,6 +220,30 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
     printf("Expected excitatory active cells is %.2f\n", *exp_e*100);
     printf("Expected inhibitory active cells is %.2f\n", *exp_i*100);
 
+    printf("FINITE K CORRECTIONS:\n");
+
+    double fKc_e, fKc_i, alpha_e, alpha_i, me, mi;
+    me = (*exp_e);  mi = (*exp_i);
+    alpha_e = me+mi*J_E*J_E;
+    alpha_i = me+mi*J_I*J_I;
+    fKc_e = (E*m_0+me-J_E*mi)-(theta[0]+sqrt(alpha_e)*h(me))/sqrt(K);
+    fKc_i = (I*m_0+me-J_I*mi)-(theta[1]+sqrt(alpha_i)*h(mi))/sqrt(K);
+
+    printf("%f\n",fKc_e);
+    printf("%f\n",fKc_i);
+
+    printf("Another rate calculation:\n");
+
+    double ue, ui, me2, mi2;
+
+    ue = -sqrt(2*alpha_e*fabs(log(alpha_e)));
+    ue = -sqrt(2*alpha_i*fabs(log(alpha_i)));
+    me2 = H((theta[0]-ue)/sqrt(alpha_e));
+    mi2 = H((theta[1]-ui)/sqrt(alpha_i));
+
+    printf("%f\n",me2);
+    printf("%f\n",mi2);
+    
     //delete[] spikes;
     vector<Cell>().swap(population);
     //vector<vector<double>>().swap(J);

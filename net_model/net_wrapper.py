@@ -26,16 +26,16 @@ exp_i=ctypes.c_double()
 #spikes = np.reshape(spikes, (2,500000))
 spikes = f(ctypes.c_int(N_E), ctypes.c_int(N_I), ctypes.c_int(K), ctypes.byref(exp_e), ctypes.byref(exp_i))
 
-me = np.loadtxt('./me(t).txt')
-mi = np.loadtxt('./mi(t).txt')
+me = np.loadtxt('./me.txt')
+mi = np.loadtxt('./mi.txt')
 
-with open('./spikes_e(t).txt', 'r') as f:
+with open('./spikes_e.txt', 'r') as f:
         spikes_e = []
         for ele in f:
             line = list(map(int, ele.split('\n')[0].split()))
             spikes_e.append(line)
 
-with open('./spikes_i(t).txt', 'r') as f:
+with open('./spikes_i.txt', 'r') as f:
         spikes_i = []
         for ele in f:
             line = list(map(int, ele.split('\n')[0].split()))

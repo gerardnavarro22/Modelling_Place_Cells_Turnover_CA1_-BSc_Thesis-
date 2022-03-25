@@ -136,10 +136,10 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
     printf("Initial number of inhibitory active cells is %.2f\n", (double)n_active_i/N_I*100);
     
     
-    ofstream me_file ("me(t).txt");
-    ofstream mi_file ("mi(t).txt");
-    ofstream se_file ("spikes_e(t).txt");
-    ofstream si_file ("spikes_i(t).txt");
+    ofstream me_file ("me.txt");
+    ofstream mi_file ("mi.txt");
+    ofstream se_file ("spikes_e.txt");
+    ofstream si_file ("spikes_i.txt");
     uniform_int_distribution<> distr(0, N-1);
     vector<int> indices(N);
     iota(indices.begin(), indices.end(), 0);
@@ -231,18 +231,6 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
 
     printf("%f\n",fKc_e);
     printf("%f\n",fKc_i);
-
-    printf("Another rate calculation:\n");
-
-    double ue, ui, me2, mi2;
-
-    ue = -sqrt(2*alpha_e*fabs(log(alpha_e)));
-    ue = -sqrt(2*alpha_i*fabs(log(alpha_i)));
-    me2 = H((theta[0]-ue)/sqrt(alpha_e));
-    mi2 = H((theta[1]-ui)/sqrt(alpha_i));
-
-    printf("%f\n",me2);
-    printf("%f\n",mi2);
     
     //delete[] spikes;
     vector<Cell>().swap(population);

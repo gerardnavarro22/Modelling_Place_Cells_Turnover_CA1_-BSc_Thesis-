@@ -17,17 +17,13 @@ for K in Ks:
     N_I=1000
     N=N_E+N_I
     #K=100
-    T = 250*N
-    size = T*2
+    T = 250
     c_double_p = ctypes.POINTER(ctypes.c_double)
     f = ctypes.CDLL(dir_path+'/library.so').simulate
-    #f.restype = ctypes.POINTER(ctypes.c_int * size)
     f.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_int, c_double_p, c_double_p]
 
     exp_e=ctypes.c_double()
     exp_i=ctypes.c_double()
-    #spikes = list(f(ctypes.c_int(N_E), ctypes.c_int(N_I), ctypes.c_int(K), ctypes.byref(exp_e), ctypes.byref(exp_i)).contents)
-    #spikes = np.reshape(spikes, (2,500000))
     spikes = f(ctypes.c_int(N_E), ctypes.c_int(N_I), ctypes.c_int(K), ctypes.byref(exp_e), ctypes.byref(exp_i))
 
     me = np.loadtxt('./me.txt')
@@ -51,32 +47,29 @@ for K in Ks:
 
     fig, axs = plt.subplots(2, constrained_layout=True, figsize=(8,6))
     fig.patch.set_facecolor('white')
+    fig.suptitle('#active cells', fontsize=16)
 
     axs[0].set_title('Excitatory cells')
     axs[0].plot(me)
     axs[0].axhline(y=exp_e.value*N_E, color='r', linestyle='-')
-    fig.suptitle('#active cells', fontsize=16)
     axs[1].set_title('Inhibitory cells')
     axs[1].plot(mi)
     axs[1].axhline(y=exp_i.value*N_I, color='r', linestyle='-')
-
     fig.savefig(f"./rates_figures/K_{K}.png")
     plt.close()
 
     fig, axs = plt.subplots(2, constrained_layout=True, figsize=(16,9))
     fig.patch.set_facecolor('white')
-
     fig.suptitle('Neuron spikes', fontsize=16)
+    
     max_cell = 50
     beg = 0
-
     axs[0].set_title('Excitatory cells')
     for i in range(100):
         spikes_t = np.array(spikes_e[beg+i])
         spikes_t = spikes_t[spikes_t<max_cell]
         axs[0].scatter(np.repeat(beg+i,spikes_t.shape[0]), spikes_t, s=3, marker='s', color='black')
     axs[0].set_xlabel('time')
-    fig.suptitle('Spikes', fontsize=16)
     axs[1].set_title('Inhibitory cells')
     for i in range(100):
         spikes_t = np.array(spikes_i[beg+i])
@@ -86,24 +79,28 @@ for K in Ks:
     fig.savefig(f"./spikes_figures/K_{K}.png")
     plt.close()
 
-    fig, axs = plt.subplots(2, constrained_layout=True, figsize=(8,6), gridspec_kw={'height_ratios': [6, 1]})
+    fig, axs = plt.subplots(2, constrained_layout=True, figsize=(8,6), gridspec_kw={'height_ratios': [6, 1]}, sharex=True)
     fig.patch.set_facecolor('white')
+    fig.suptitle('Temporal structure of the input to an excitatory cell.', fontsize=16)
 
-    axs[0].set_ylabel('Input')
+    axs[0].set_ylabel('Input', fontsize=16)
     axs[0].plot(obs_ex, color='black')
     axs[0].plot(obs_in, color='black')
     axs[0].plot(obs_ex+obs_in, color='black')
     axs[0].axhline(y=0, color='black', linestyle='-')
     axs[0].axhline(y=1, color='black', linestyle='--')
-    axs[0].set_xticks([])
-    for spike in obs_spikes:
-        axs[0].axvline(x=spike, color='black', linestyle='-')
-    fig.suptitle('Temporal structure of the input to an excitatory cell.', fontsize=16)
-    axs[1].set_ylabel('Spikes')
+    axs[0].spines['bottom'].set_visible(False)
+    axs[1].set_ylabel('Spikes', fontsize=16)
     for spike in obs_spikes:
         axs[1].axvline(x=spike, color='black', linestyle='-')
     axs[1].set_yticks([])
+    axs[1].set_xticks([0,T])
+    axs[0].set_xticks([])
     axs[1].set_xlabel('time')
+    axs[1].spines['right'].set_visible(False)
+    axs[1].spines['left'].set_visible(False)
+    axs[1].spines['top'].set_visible(False)
+    fig.align_ylabels(axs)
     fig.savefig(f"./obs_figures/K_{K}.png")
     plt.close()
 

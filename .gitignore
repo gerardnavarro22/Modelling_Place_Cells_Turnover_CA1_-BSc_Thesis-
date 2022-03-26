@@ -1,6 +1,4 @@
 /__pycache__
 net_model/__pycache__/
-net_model/spikes_e.txt
-net_model/spikes_i.txt
-net_model/mi.txt
-net_model/me.txt
+net_model/*.txt
+net_model/obs_in.txt

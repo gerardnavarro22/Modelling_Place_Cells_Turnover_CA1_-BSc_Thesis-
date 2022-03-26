@@ -27,12 +27,6 @@ bool heaviside(double x) {
     }
 }
 
-double dist() {
-    default_random_engine generator(time(0));
-    bernoulli_distribution distribution(probs[0]);
-    return distribution(generator);
-}
-
 double h(double x) {
     return -sqrt(2*fabs(log(x)));
 }
@@ -141,12 +135,9 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
     ofstream obs_ex_file ("obs_ex.txt");
     ofstream obs_in_file ("obs_in.txt");
     ofstream obs_spikes_file ("obs_spikes.txt");
-    //uniform_int_distribution<> distr(0, N-1);
     vector<int> indices(N);
     iota(indices.begin(), indices.end(), 0);
     const int T=250;
-    //int *spikes = new int[2*T];
-    //memset(spikes, 0, sizeof *spikes * 2 * T);
     int idx, before, after;
     double ue, ui;
     me_file << n_active_e << '\n';
@@ -154,7 +145,6 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
     for (int i = 0; i < T; i++) {
         random_shuffle(indices.begin(), indices.end());
         for (int j = 0; j < N; j++) {
-            //idx = distr(generator);
             idx = indices[j];
             before = population[idx].active;
             population[idx].update();
@@ -202,38 +192,6 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
         mi_file << n_active_i << '\n';
     }
 
-    /*
-    const int T=250*N;
-    int *spikes = new int[2*T];
-    memset(spikes, 0, sizeof *spikes * 2 * T);
-    int idx, before, after;
-    for (int t = 0; t < T; t++) {
-        idx = distr(generator);
-        before = population[idx].active;
-        population[idx].update();
-        after = population[idx].active;
-        if (after-before == 1) {
-            spikes[population[idx].k*T+t] = 1;
-            if (population[idx].k == 0) {
-                se_file << population[idx].i << ' ';
-                n_active_e++;
-            } else {
-                si_file << population[idx].i << ' ';
-                n_active_i++;
-            }
-        } else if (after-before == -1) {
-            if (population[idx].k == 0) {
-                n_active_e--;
-            } else {
-                n_active_i--;
-            }
-        }
-        me_file << n_active_e << '\n';
-        mi_file << n_active_i << '\n';
-    }
-    */
-
-
     //printf("Final number of excitatory active cells is %.2f\n", (double)n_active_e/N_E*100);
     //printf("Final number of inhibitory active cells is %.2f\n", (double)n_active_i/N_I*100);
     
@@ -257,8 +215,13 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
     */
 
     //delete[] spikes;
+    for (int k = 0; k < J.size(); ++k){     
+        J[k].clear();
+        J[k].shrink_to_fit();   
+    }
+    J.clear();
+    J.shrink_to_fit();
     vector<Cell>().swap(population);
-    //vector<vector<double>>().swap(J);
     vector<double>().swap(ext);
     vector<double>().swap(theta);
     vector<double>().swap(probs);

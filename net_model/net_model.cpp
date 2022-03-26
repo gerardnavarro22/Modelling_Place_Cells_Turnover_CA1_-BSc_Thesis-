@@ -67,6 +67,7 @@ class Cell {
 };
 
 extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
+    
     int N;
     double m_0, E, I, J_EE, J_IE, J_E, J_I;
     N=N_E+N_I;
@@ -104,23 +105,17 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
     }
     
     bernoulli_distribution distribution2(probs[0]);
+    bernoulli_distribution distribution3(probs[1]);
     
-    for (int i = 0; i < N_E; i++) {
+    for (int i = 0; i < N; i++) {
         vector<int> nds;
-        for (int j = 0; j < N; ++j) {
+        for (int j = 0; j < N_E; ++j) {
             if (distribution2(generator)) nds.push_back(j);
         }
-        population[i].pre = nds;
-        vector<int>().swap(nds);
-    }
-
-    bernoulli_distribution distribution3(probs[1]);
-    for (int i = 0; i < N_I; i++) {
-        vector<int> nds;
-        for (int j = 0; j < N; ++j) {
-            if (distribution3(generator)) nds.push_back(j);
+        for (int j = 0; j < N_I; ++j) {
+            if (distribution3(generator)) nds.push_back(N_E+j);
         }
-        population[N_E+i].pre = nds;
+        population[i].pre = nds;
         vector<int>().swap(nds);
     }
     
@@ -132,21 +127,28 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
             n_active_i = n_active_i + population[i].active;
         }
     }
-    printf("Initial number of excitatory active cells is %.2f\n", (double)n_active_e/N_E*100);
-    printf("Initial number of inhibitory active cells is %.2f\n", (double)n_active_i/N_I*100);
+    //printf("Initial number of excitatory active cells is %.2f\n", (double)n_active_e/N_E*100);
+    //printf("Initial number of inhibitory active cells is %.2f\n", (double)n_active_i/N_I*100);
     
     
+    uniform_int_distribution<> distr(0, N_E-1);
+    int obs = distr(generator);
+
     ofstream me_file ("me.txt");
     ofstream mi_file ("mi.txt");
     ofstream se_file ("spikes_e.txt");
     ofstream si_file ("spikes_i.txt");
-    uniform_int_distribution<> distr(0, N-1);
+    ofstream obs_ex_file ("obs_ex.txt");
+    ofstream obs_in_file ("obs_in.txt");
+    ofstream obs_spikes_file ("obs_spikes.txt");
+    //uniform_int_distribution<> distr(0, N-1);
     vector<int> indices(N);
     iota(indices.begin(), indices.end(), 0);
     const int T=250;
     //int *spikes = new int[2*T];
     //memset(spikes, 0, sizeof *spikes * 2 * T);
     int idx, before, after;
+    double ue, ui;
     me_file << n_active_e << '\n';
     mi_file << n_active_i << '\n';
     for (int i = 0; i < T; i++) {
@@ -157,6 +159,26 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
             before = population[idx].active;
             population[idx].update();
             after = population[idx].active;
+            if (idx == obs) {
+                ue=0; ui=0;
+                for (int j = 0; j < population[idx].pre.size(); j++) {
+                    if (population[population[idx].pre[j]].k == 0) {
+                        ue = ue + J[population[idx].k][population[population[idx].pre[j]].k]*population[population[idx].pre[j]].active;
+                    }
+                }
+                ue = ue + ext[population[idx].k];
+                obs_ex_file << ue << '\n';
+
+                for (int j = 0; j < population[idx].pre.size(); j++) {
+                    if (population[population[idx].pre[j]].k == 1) {
+                        ui = ui + J[population[idx].k][population[population[idx].pre[j]].k]*population[population[idx].pre[j]].active;
+                    }
+                }
+                obs_in_file << ui << '\n';
+                if (after-before == 1) {
+                    obs_spikes_file << i << '\n';
+                }
+            }
             if (after-before == 1) {
                 //spikes[population[idx].k*T+idx] = 1;
                 if (population[idx].k == 0) {
@@ -212,14 +234,15 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
     */
 
 
-    printf("Final number of excitatory active cells is %.2f\n", (double)n_active_e/N_E*100);
-    printf("Final number of inhibitory active cells is %.2f\n", (double)n_active_i/N_I*100);
+    //printf("Final number of excitatory active cells is %.2f\n", (double)n_active_e/N_E*100);
+    //printf("Final number of inhibitory active cells is %.2f\n", (double)n_active_i/N_I*100);
     
     *exp_e = (J_I*E-J_E*I)/(J_E-J_I)*m_0;
     *exp_i = (E-I)/(J_E-J_I)*m_0;
-    printf("Expected excitatory active cells is %.2f\n", *exp_e*100);
-    printf("Expected inhibitory active cells is %.2f\n", *exp_i*100);
+    //printf("Expected excitatory active cells is %.2f\n", *exp_e*100);
+    //printf("Expected inhibitory active cells is %.2f\n", *exp_i*100);
 
+    /*
     printf("FINITE K CORRECTIONS:\n");
 
     double fKc_e, fKc_i, alpha_e, alpha_i, me, mi;
@@ -231,7 +254,8 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
 
     printf("%f\n",fKc_e);
     printf("%f\n",fKc_i);
-    
+    */
+
     //delete[] spikes;
     vector<Cell>().swap(population);
     //vector<vector<double>>().swap(J);

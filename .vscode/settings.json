@@ -7,6 +7,17 @@
         "iosfwd": "cpp",
         "random": "cpp",
         "initializer_list": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "algorithm": "cpp",
+        "functional": "cpp",
+        "iterator": "cpp",
+        "new": "cpp",
+        "vector": "cpp",
+        "fstream": "cpp",
+        "ios": "cpp",
+        "streambuf": "cpp",
+        "exception": "cpp",
+        "istream": "cpp",
+        "list": "cpp"
     }
 }

@@ -1,3 +1,3 @@
 rm *.so *.txt
-g++ -shared -fPIC -o library.so net_model.cpp
+g++ -shared -fPIC net_model.cpp -o library.so -fopenmp -lpthread
 

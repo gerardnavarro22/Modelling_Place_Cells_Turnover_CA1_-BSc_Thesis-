@@ -11,7 +11,7 @@ me_k = []
 mi_k = []
 Ks = [100,200,400,600,800,1000,2000,4000,6000]
 #Ks = [100]
-for K in Ks:
+def simulate():
     print(f'K={K}')
     os.system('sh compile.sh')
     N_E=20000
@@ -118,6 +118,7 @@ for K in Ks:
     sim_i = np.mean((mi/N_I)[-int(T*0.8):])
     me_k.append(sim_e)
     mi_k.append(sim_i)
+
 
 #PLOTTING RATES VS K
 if (len(Ks)>1):

@@ -9,6 +9,7 @@
 #include <cstring>
 #include <list>
 #include <fstream>
+#include <omp.h>
 using namespace std;
 
 
@@ -42,8 +43,6 @@ class Cell {
     vector<int> pre;
     int i,k; 
 
-
-    // function to initialize private variables
     Cell(double act, double i2, double k2) {
         active = act;
         i = i2;
@@ -51,7 +50,7 @@ class Cell {
     }
 
     void update() {
-        double u=0;
+        double u=0.;
         for (int j = 0; j < pre.size(); j++) {
             u = u + J[k][population[pre[j]].k]*population[pre[j]].active;
         }
@@ -60,7 +59,7 @@ class Cell {
     }
 };
 
-extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
+extern "C" int simulate(int N_E, int N_I, int K, int T, double* exp_e, double* exp_i) {
     
     int N;
     double m_0, E, I, J_EE, J_IE, J_E, J_I;
@@ -71,7 +70,7 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
     I=0.8;
     J_EE=1.;
     J_IE=1.;
-    J_E=2;
+    J_E=2.;
     J_I=1.8;
 
     J[0][0] = J_EE/sqrt(K);
@@ -137,7 +136,6 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
     ofstream obs_spikes_file ("obs_spikes.txt");
     vector<int> indices(N);
     iota(indices.begin(), indices.end(), 0);
-    const int T=250;
     int idx, before, after;
     double ue, ui;
     me_file << n_active_e << '\n';
@@ -170,7 +168,6 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
                 }
             }
             if (after-before == 1) {
-                //spikes[population[idx].k*T+idx] = 1;
                 if (population[idx].k == 0) {
                     se_file << population[idx].i << ' ';
                     n_active_e++;
@@ -214,13 +211,6 @@ extern "C" int simulate(int N_E, int N_I, int K, double* exp_e, double* exp_i) {
     printf("%f\n",fKc_i);
     */
 
-    //delete[] spikes;
-    for (int k = 0; k < J.size(); ++k){     
-        J[k].clear();
-        J[k].shrink_to_fit();   
-    }
-    J.clear();
-    J.shrink_to_fit();
     vector<Cell>().swap(population);
     vector<double>().swap(ext);
     vector<double>().swap(theta);

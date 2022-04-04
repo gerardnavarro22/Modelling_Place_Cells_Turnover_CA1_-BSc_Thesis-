@@ -18,6 +18,7 @@
         "streambuf": "cpp",
         "exception": "cpp",
         "istream": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "string": "cpp"
     }
 }

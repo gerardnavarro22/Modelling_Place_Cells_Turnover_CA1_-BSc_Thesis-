@@ -127,13 +127,13 @@ extern "C" int simulate(int N_E, int N_I, int K, int T, double* exp_e, double* e
     uniform_int_distribution<> distr(0, N_E-1);
     int obs = distr(generator);
 
-    ofstream me_file ("me.txt");
-    ofstream mi_file ("mi.txt");
-    ofstream se_file ("spikes_e.txt");
-    ofstream si_file ("spikes_i.txt");
-    ofstream obs_ex_file ("obs_ex.txt");
-    ofstream obs_in_file ("obs_in.txt");
-    ofstream obs_spikes_file ("obs_spikes.txt");
+    ofstream me_file (string("me_")+to_string(K)+string(".txt"));
+    ofstream mi_file (string("mi_")+to_string(K)+string(".txt"));
+    ofstream se_file (string("spikes_e_")+to_string(K)+string(".txt"));
+    ofstream si_file (string("spikes_i_")+to_string(K)+string(".txt"));
+    ofstream obs_ex_file (string("obs_ex_")+to_string(K)+string(".txt"));
+    ofstream obs_in_file (string("obs_in_")+to_string(K)+string(".txt"));
+    ofstream obs_spikes_file (string("obs_spikes_")+to_string(K)+string(".txt"));
     vector<int> indices(N);
     iota(indices.begin(), indices.end(), 0);
     int idx, before, after;

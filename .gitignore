@@ -1,3 +1,4 @@
 /__pycache__
 net_model/__pycache__/
 net_model/*.txt
+net_model/*.so

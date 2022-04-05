@@ -39,9 +39,9 @@ double H(double x) {
 class Cell {
 
     public:
-    bool active;
-    vector<int> pre;
-    int i,k; 
+        bool active;
+        vector<int> pre;
+        int i,k; 
 
     Cell(double act, double i2, double k2) {
         active = act;

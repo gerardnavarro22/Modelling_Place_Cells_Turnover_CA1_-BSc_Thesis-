@@ -11,10 +11,10 @@ os.system('sh compile.sh')
 
 def simulate(K):
     print(f'K={K}')
-    N_E=20000
-    N_I=8000
+    N_E=K*4
+    N_I=K*2
     N=N_E+N_I
-    T = 150
+    T = 20
     c_double_p = ctypes.POINTER(ctypes.c_double)
     f = ctypes.CDLL(dir_path+'/library.so').simulate
     f.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, c_double_p, c_double_p]
@@ -119,8 +119,8 @@ def simulate(K):
 
 me_k = []
 mi_k = []
-Ks = [100,200,400,600,800,1000,2000,4000,6000]
-#Ks = [100]
+#Ks = [100,200,400,600,800,1000,2000,4000,6000]
+Ks = [10000]
 
 me_k, mi_k, exp_e, exp_i = zip(*Parallel(n_jobs=-1)(delayed(simulate)(K) for K in Ks))
 

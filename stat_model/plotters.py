@@ -5,14 +5,8 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 import time
 
-def environment_plotter():
-  N = 400
-  n_session = 50
-  n_environments = 7
-  n_trials = 10
-  probs = [0,0.05,0.1,0.15,0.2]
+def environment_plotter(N, n_session, n_environments, n_trials, probs, n_father_matrcies):
   n_probs = len(probs)
-  n_father_matrcies = 50
   
   accuracies = np.array(Parallel(n_jobs=-1)(delayed(decoders.pred_environment)(N, n_session, n_environments, n_trials, probs, n_probs) for i in range(n_father_matrcies)))
   
@@ -27,27 +21,23 @@ def environment_plotter():
   delta_t = np.arange(0,n_session)
   fig, ax = plt.subplots()
   fig.patch.set_facecolor('white')
-  ax.axhline(y = 1/n_environments, color = 'black', linestyle = 'dashed') 
-  ax.set_xlabel("$\Delta$ sessions")
-  ax.set_ylabel("Accuracy")
+  ax.tick_params(labelsize=12)
+  ax.axhline(y = 1/n_environments, color = 'black', linestyle = 'dashed')
+  ax.set_xlabel("$\Delta$ sessions", fontsize=18)
+  ax.set_ylabel("Environment accuracy", fontsize=18)
   ax.set_yticks([1/n_environments,1])
-  ax.set_xticks(delta_t[::6])
+  ax.set_xticks(delta_t[::7])
   for i in range(n_probs):
     ax.plot(delta_t, means[i], label=f'p={probs[i]}')
     #ax.errorbar(delta_t, means[i], yerr=ci[i], fmt='.k')
     ax.fill_between(delta_t, (means[i]-ci[i]), (means[i]+ci[i]), alpha=.2)
-    ax.legend(loc='best')
+    ax.legend(loc='best', fontsize=15)
   date = time.strftime("%Y-%m-%d %H%M%S")
+  plt.tight_layout()
   plt.savefig(f'./figures/env_{date}.png', dpi=fig.dpi)
 
-def sessions_plotter():
-  N = 400
-  n_session = 50
-  n_environments = 7
-  n_trials = 10
-  probs = [0,0.05,0.1,0.15,0.2,0.3,0.4,0.5]
+def sessions_plotter(N, n_session, n_environments, n_trials, probs, n_father_matrcies):
   n_probs = len(probs)
-  n_father_matrcies = 50
   
   accuracies = np.array(Parallel(n_jobs=-1)(delayed(decoders.pred_session)(N, n_session, n_environments, n_trials, probs, n_probs) for i in range(n_father_matrcies)))
   
@@ -62,17 +52,19 @@ def sessions_plotter():
   delta_t = np.arange(0,n_session)
   fig, ax = plt.subplots()
   fig.patch.set_facecolor('white')
+  ax.tick_params(labelsize=12)
   ax.axhline(y = 1/n_session, color = 'black', linestyle = 'dashed') 
-  ax.set_xlabel("$\Delta$ sessions")
-  ax.set_ylabel("Accuracy")
+  ax.set_xlabel("$\Delta$ sessions", fontsize=18)
+  ax.set_ylabel("Session accuracy", fontsize=18)
   ax.set_yticks([1/n_session,1])
-  ax.set_xticks(delta_t[::6])
+  ax.set_xticks(delta_t[::7])
   for i in range(n_probs):
     ax.plot(delta_t, means[i], label=f'p={probs[i]}')
     #ax.errorbar(delta_t, means[i], yerr=ci[i], fmt='.k')
     ax.fill_between(delta_t, (means[i]-ci[i]), (means[i]+ci[i]), alpha=.2)
-    ax.legend(loc='right')
+    ax.legend(loc='right', fontsize=15)
   date = time.strftime("%Y-%m-%d %H%M%S")
+  plt.tight_layout()
   plt.savefig(f'./figures/sess_{date}.png', dpi=fig.dpi)
     
 def environment_param_heatmap_plotter(p=0.3, ret=False):

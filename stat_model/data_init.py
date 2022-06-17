@@ -1,10 +1,10 @@
 import numpy as np
 
 def data_init(N, n_session, n_environments, params={}):
-  rho_s = params.get('rho_s', 0.93)
-  rho_ns = params.get('rho_ns', 0)
-  sigma = params.get('sigma', 1.49)
-  theta = params.get('theta', 0.65)
+  rho_s = params.get('rho_s', 0.95)
+  rho_ns = params.get('rho_ns', 0.35)
+  sigma = params.get('sigma', 1.166)
+  theta = params.get('theta', 0.556)
   rho_s_AB = params.get('rho_s_AB', 0.53)
   rho_ns_AB = params.get('rho_ns_AB', 0.52)
   cov_x = rho_s_AB*sigma**2

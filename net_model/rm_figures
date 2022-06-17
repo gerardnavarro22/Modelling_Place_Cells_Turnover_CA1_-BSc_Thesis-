@@ -1,1 +1,2 @@
 rm ./K_rates_figures/* ./obs_figures/* ./rates_figures/* ./spikes_figures/*
+rm *.txt

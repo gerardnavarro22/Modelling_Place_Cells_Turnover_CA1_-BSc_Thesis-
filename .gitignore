@@ -1,4 +1,5 @@
 /__pycache__
+/.vscode
 net_model/__pycache__/
 net_model/*.txt
 net_model/*.so
